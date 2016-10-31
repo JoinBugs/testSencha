@@ -93,9 +93,20 @@ function initAutocomplete() {
       });
     }
 
+    function doEmptyNode( node )
+    {
+      var nodes = Array.prototype.slice.call( node.childNodes );
+      nodes.forEach( function( node ) { node.remove(); } );
+    }
+
     function PageLoaded()
     {
       var btnSearch = document.querySelector('#pac-input');
+
+      Ext.define('usersuggest', {
+          extend: 'Ext.data.Model',
+          fields: [ 'path' ]
+      });
 
       btnSearch.addEventListener( 'keypress', function( e )
       {
@@ -103,12 +114,36 @@ function initAutocomplete() {
             dataMatched = _.map( dataNode, function( data )
           {
               return {
-                'find-path' : data.childNodes[1].textContent + ' ' + data.childNodes[2].textContent
+                'path' : data.childNodes[1].textContent + ' ' + data.childNodes[2].textContent
               };
           });
-          _.forEach( dataMatched, function( data )
+
+          var userStore = Ext.create('Ext.data.Store', {
+              model: 'usersuggest',
+              data: dataMatched
+          });
+
+        doEmptyNode( document.querySelector('#pnl-grid') );
+        Ext.create('Ext.grid.Panel', {
+            renderTo: document.querySelector('#pnl-grid'),
+            store: userStore,
+            width: 400,
+            height: 200,
+            title: 'Sugerencias de busqueda',
+            columns: [
+                {
+                    text: 'Rutas',
+                    width: 1000,
+                    sortable: false,
+                    hideable: false,
+                    dataIndex: 'path'
+                }
+            ]
+        });
+
+        _.forEach( dataMatched, function( data )
         {
-          console.log( data["find-path"] );
+          console.log( data["path"] );
         });
         window.dataMatched = dataMatched;
       },
