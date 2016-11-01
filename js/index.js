@@ -27,10 +27,12 @@ function initAutocomplete() {
   // more details for that place.
 
 
-  searchBox.addListener('places_changed', function() 
+  searchBox.addListener('places_changed', function()
   {
 
-    var places = searchBox.getPlaces();
+    var places = searchBox.getPlaces(),
+        infowindow = new google.maps.InfoWindow(),
+        service = new google.maps.places.PlacesService(map);
 
     //userHistory.removeAll();
     window.userHistory.add({ 'history' : places[ 0 ].formatted_address });
@@ -66,6 +68,28 @@ function initAutocomplete() {
       }),
         'place' : place
       });
+
+      service.getDetails({ 'reference' : places[0].reference }, function( details, status )
+      {
+          if (status == google.maps.places.PlacesServiceStatus.OK)
+          {
+              google.maps.event.addListener(markers[ markers.length - 1 ].marker, 'click', function() {
+                infowindow.setContent( '<div class="detail-marker">'
+                                      + details.name + "<br />"
+                                      + (details.formatted_address || 'sin direccion' )               +"<br />"
+                                      + (details.website || 'sin sitio web' )                         + "<br />"
+                                      + (details.rating || 'sin rating' )                             + "<br />"
+                                      + (details.formatted_phone_number || 'sin numero de telefono')  + "<br />"
+                                      + (details.photos[1].html_attributions)                         + "<br />"
+                                      + (details.photos[2].html_attributions)                         + "<br />"
+                                      + (details.photos[3].html_attributions)
+                                      + '</div>'
+                                    );
+                infowindow.open(map, this);
+              });
+          }
+      });
+
 
       if (place.geometry.viewport) {
         // Only geocodes have viewport.
@@ -170,7 +194,7 @@ function initAutocomplete() {
               }
           ],
           listeners: {
-              itemclick: function(dv, record, item, index, e) 
+              itemclick: function(dv, record, item, index, e)
               {
                 for( var i = 0, l = window.markers.length; i < l; i++ )
                   if( i !== index )
