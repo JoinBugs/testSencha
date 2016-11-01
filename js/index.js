@@ -24,36 +24,13 @@ function initAutocomplete() {
   // more details for that place.
 
 
-  Ext.define('UserHistory', {
-      extend: 'Ext.data.Model',
-      fields: [ 'path' ]
-  });
+  searchBox.addListener('places_changed', function() 
+  {
 
-  var userHistory = Ext.create('Ext.data.Store', {
-      model: 'UserHistory',
-      data: []
-  });
-
-  Ext.create('Ext.grid.Panel', {
-      renderTo: document.querySelector('#pnl-grid-history'),
-      store: userStore,
-      width: 400,
-      height: 200,
-      title: 'Historial de busqueda',
-      columns: [
-          {
-              text: 'Historial',
-              width: 1000,
-              sortable: false,
-              hideable: false,
-              dataIndex: 'path'
-          }
-      ]
-  });
-
-
-  searchBox.addListener('places_changed', function() {
     var places = searchBox.getPlaces();
+
+    //userHistory.removeAll();
+    userHistory.add({ 'history' : places[ 0 ].formatted_address });
 
     if (places.length == 0) {
       return;
@@ -138,10 +115,21 @@ function initAutocomplete() {
           fields: [ 'path' ]
       });
 
+      Ext.define('UserHistory', {
+          extend: 'Ext.data.Model',
+          fields: [ 'history' ]
+      });
+
       var userStore = Ext.create('Ext.data.Store', {
           model: 'usersuggest',
           data: []
+      }),
+          userHistory = Ext.create('Ext.data.Store', {
+          model: 'UserHistory',
+          data: []
       });
+
+      window.userHistory = userHistory;
 
       Ext.create('Ext.grid.Panel', {
           renderTo: document.querySelector('#pnl-grid'),
@@ -156,6 +144,23 @@ function initAutocomplete() {
                   sortable: false,
                   hideable: false,
                   dataIndex: 'path'
+              }
+          ]
+      });
+
+      Ext.create('Ext.grid.Panel', {
+          renderTo: document.querySelector('#pnl-grid-history'),
+          store: userHistory,
+          width: 400,
+          height: 200,
+          title: 'Historial de busqueda',
+          columns: [
+              {
+                  text: 'Historial',
+                  width: 1000,
+                  sortable: false,
+                  hideable: false,
+                  dataIndex: 'history'
               }
           ]
       });
@@ -181,10 +186,10 @@ function initAutocomplete() {
         false );
 
 
-      Ext.MessageBox.alert('Aviso', 'Libreria ExtJS cargada satisfactoriamente.', function (btn)
+      /*Ext.MessageBox.alert('Aviso', 'Libreria ExtJS cargada satisfactoriamente.', function (btn)
       {
           //alert('Boton presionado: ' + btn);
-      });
+      });*/
     }
 })
 ( window, document );

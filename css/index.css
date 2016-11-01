@@ -51,3 +51,8 @@ font-weight: 300;
 #target {
   width: 345px;
 }
+
+.pnl
+{
+  display: inline-block;
+}
