@@ -1,5 +1,7 @@
+window.markers = [];
+
 function initAutocomplete() {
-  var map = new google.maps.Map(document.getElementById('map'), {
+  var map = window.map = new google.maps.Map(document.getElementById('map'), {
     center: {lat: -33.8688, lng: 151.2195},
     zoom: 13,
     mapTypeId: google.maps.MapTypeId.ROADMAP
@@ -10,6 +12,7 @@ function initAutocomplete() {
   var input = document.getElementById('pac-input');
   //configure the element as a widged of google maps
   var searchBox = new google.maps.places.SearchBox(input);
+  window.searchBox = searchBox;
   //get display control on top of all map
   map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 
@@ -18,7 +21,7 @@ function initAutocomplete() {
     searchBox.setBounds(map.getBounds());
   });
 
-  var markers = [];
+ // var markers = [];
   // [START region_getplaces]
   // Listen for the event fired when the user selects a prediction and retrieve
   // more details for that place.
@@ -30,7 +33,7 @@ function initAutocomplete() {
     var places = searchBox.getPlaces();
 
     //userHistory.removeAll();
-    userHistory.add({ 'history' : places[ 0 ].formatted_address });
+    window.userHistory.add({ 'history' : places[ 0 ].formatted_address });
 
     if (places.length == 0) {
       return;
@@ -38,9 +41,9 @@ function initAutocomplete() {
 
     // Clear out the old markers.
     markers.forEach(function(marker) {
-      marker.setMap(null);
+      marker.marker.setMap(null);
     });
-    markers = [];
+    //markers = [];
 
     // For each place, get the icon, name and location.
     var bounds = new google.maps.LatLngBounds();
@@ -54,12 +57,15 @@ function initAutocomplete() {
       };
 
       // Create a marker for each place.
-      markers.push(new google.maps.Marker({
+      markers.push({
+        'marker' : new google.maps.Marker({
         map: map,
         icon: icon,
         title: place.name,
         position: place.geometry.location
-      }));
+      }),
+        'place' : place
+      });
 
       if (place.geometry.viewport) {
         // Only geocodes have viewport.
@@ -162,7 +168,24 @@ function initAutocomplete() {
                   hideable: false,
                   dataIndex: 'history'
               }
-          ]
+          ],
+          listeners: {
+              itemclick: function(dv, record, item, index, e) 
+              {
+                for( var i = 0, l = window.markers.length; i < l; i++ )
+                  if( i !== index )
+                    window.markers[ i ].marker.setMap( null );
+
+                var bounds = new google.maps.LatLngBounds();
+
+                  if (markers[ index ].place.geometry.viewport)
+                    bounds.union(markers[ index ].place.geometry.viewport);
+                  else
+                    bounds.extend(markers[ index ].place.geometry.location);
+                  markers[ index ].marker.setMap( window.map );
+                  map.fitBounds(bounds);
+              }
+          }
       });
 
       btnSearch.addEventListener( 'keypress', function( e )
