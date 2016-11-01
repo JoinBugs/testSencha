@@ -22,6 +22,36 @@ function initAutocomplete() {
   // [START region_getplaces]
   // Listen for the event fired when the user selects a prediction and retrieve
   // more details for that place.
+
+
+  Ext.define('UserHistory', {
+      extend: 'Ext.data.Model',
+      fields: [ 'path' ]
+  });
+
+  var userHistory = Ext.create('Ext.data.Store', {
+      model: 'UserHistory',
+      data: []
+  });
+
+  Ext.create('Ext.grid.Panel', {
+      renderTo: document.querySelector('#pnl-grid-history'),
+      store: userStore,
+      width: 400,
+      height: 200,
+      title: 'Historial de busqueda',
+      columns: [
+          {
+              text: 'Historial',
+              width: 1000,
+              sortable: false,
+              hideable: false,
+              dataIndex: 'path'
+          }
+      ]
+  });
+
+
   searchBox.addListener('places_changed', function() {
     var places = searchBox.getPlaces();
 
@@ -108,6 +138,28 @@ function initAutocomplete() {
           fields: [ 'path' ]
       });
 
+      var userStore = Ext.create('Ext.data.Store', {
+          model: 'usersuggest',
+          data: []
+      });
+
+      Ext.create('Ext.grid.Panel', {
+          renderTo: document.querySelector('#pnl-grid'),
+          store: userStore,
+          width: 400,
+          height: 200,
+          title: 'Sugerencias de busqueda',
+          columns: [
+              {
+                  text: 'Rutas',
+                  width: 1000,
+                  sortable: false,
+                  hideable: false,
+                  dataIndex: 'path'
+              }
+          ]
+      });
+
       btnSearch.addEventListener( 'keypress', function( e )
       {
         var dataNode = document.querySelectorAll( '.pac-item' ),
@@ -118,29 +170,8 @@ function initAutocomplete() {
               };
           });
 
-          var userStore = Ext.create('Ext.data.Store', {
-              model: 'usersuggest',
-              data: dataMatched
-          });
-
-        doEmptyNode( document.querySelector('#pnl-grid') );
-        Ext.create('Ext.grid.Panel', {
-            renderTo: document.querySelector('#pnl-grid'),
-            store: userStore,
-            width: 400,
-            height: 200,
-            title: 'Sugerencias de busqueda',
-            columns: [
-                {
-                    text: 'Rutas',
-                    width: 1000,
-                    sortable: false,
-                    hideable: false,
-                    dataIndex: 'path'
-                }
-            ]
-        });
-
+          userStore.removeAll();
+          userStore.add( dataMatched );
         _.forEach( dataMatched, function( data )
         {
           console.log( data["path"] );
